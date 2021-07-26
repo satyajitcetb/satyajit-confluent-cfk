@@ -1,0 +1,29 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: ControlCenter
+metadata:
+  name: controlcenter
+  namespace: destination
+spec:
+  replicas: 1
+  podTemplate:
+    resources:
+      requests:
+        cpu: 1
+        memory: 2Gi
+  image:
+    application: confluentinc/cp-enterprise-control-center-operator:6.1.1.0
+    init: confluentinc/cp-init-container-operator:6.1.1.0
+  dataVolumeCapacity: 10Gi
+  # Here, Control Center is deployed in the destination cluster. Hence, you'll need
+  # to specify the source Kafka cluster to be additionally monitored.
+  monitoringKafkaClusters:
+    - name: source
+      bootstrapEndpoint: kafka.source.svc.cluster.local:9092
+  dependencies:
+    kafka:
+      bootstrapEndpoint: kafka.destination.svc.cluster.local:9092
+    schemaRegistry:
+      url: http://schemaregistry.destination.svc.cluster.local:8081
+    connect:
+      - name: replicator
+        url: http://replicator.destination.svc.cluster.local:8083
